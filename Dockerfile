@@ -1,5 +1,10 @@
 FROM python:3.10-slim AS base
 
+ARG APP_VERSION
+ARG APP_CODE_COMMIT_HASH
+ENV APP_VERSION="${APP_VERSION:-dev}"
+ENV APP_CODE_COMMIT_HASH="${APP_CODE_COMMIT_HASH:-dev}"
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/home/app/.local/bin:$PATH"
@@ -9,7 +14,7 @@ EXPOSE 8000
 WORKDIR /app
 
 # Prefer security updates over reproducability
-# hadolint ignore=DL3008 
+# hadolint ignore=DL3008
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     build-essential \
@@ -27,7 +32,7 @@ RUN curl -fsSL https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
 COPY requirements.txt .
 
 # hadolint ignore=DL3013
-RUN pip install --no-cache-dir --upgrade pip \ 
+RUN pip install --no-cache-dir --upgrade pip \
  && pip install --no-cache-dir -r requirements.txt
 
 RUN useradd --user-group --system --create-home app \

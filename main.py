@@ -10,10 +10,13 @@ from api.v1 import router as api_v1
 from api.v2 import router as api_v2
 from utils.base_config import config
 
+APP_VERSION = config.app_version
+APP_CODE_COMMIT_HASH = config.app_code_commit_hash
+
 app = FastAPI(
-    title="Active10 Backend Service",
-    description="Backend service for Active10 applications",
-    version="0.1.0",
+    title="Active 10 NHS Login Backend Service",
+    description=("Backend NHS Login service for Active 10 application.\n\n"),
+    version=APP_VERSION,
 )
 
 CSP_POLICY = "; ".join(

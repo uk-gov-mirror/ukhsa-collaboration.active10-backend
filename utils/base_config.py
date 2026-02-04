@@ -4,6 +4,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Config(BaseSettings):
+    app_version: str
+    app_code_commit_hash: str
+
     nhs_login_authority_url: str
     nhs_login_client_id: str
     nhs_login_callback_url: str
