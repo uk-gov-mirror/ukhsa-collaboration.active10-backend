@@ -25,9 +25,9 @@ CSP_POLICY = "; ".join(
         "base-uri 'self'",
         "frame-ancestors 'none'",
         "object-src 'none'",
-        "script-src 'self'",
-        "style-src 'self' 'unsafe-inline'",
-        "img-src 'self' data:",
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+        "img-src 'self' data: https://fastapi.tiangolo.com",
         "font-src 'self'",
         "connect-src 'self'",
     ]
