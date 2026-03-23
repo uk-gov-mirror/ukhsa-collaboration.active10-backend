@@ -1,7 +1,12 @@
+import base64
+import hashlib
 import os
+import secrets
 from typing import Any
+from urllib.parse import urlencode
 
 import pytest
+import requests
 from fastapi.testclient import TestClient
 from seleniumbase import BaseCase
 
@@ -22,6 +27,7 @@ TEST_NHS_PASSWORD = settings.test_nhs_password
 TEST_NHS_OTP = settings.test_nhs_otp
 
 token = None
+code_verifier = None
 
 
 class MyTestClass(BaseCase):
@@ -37,7 +43,23 @@ class MyTestClass(BaseCase):
         return None, False
 
     def test_nhs_login_flow(self):
-        self.open(NHS_LOGIN_API)
+        global code_verifier  # noqa: PLW0603
+        code_verifier = secrets.token_urlsafe(64)
+        challenge = self._create_code_challenge(code_verifier)
+
+        authorize_url = self._build_authorize_url(
+            NHS_LOGIN_API,
+            {
+                "response_type": "code",
+                "client_id": "active10_mobile",
+                "redirect_uri": "active10dev://oauth_callback",
+                "code_challenge": challenge,
+                "code_challenge_method": "S256",
+                "state": "client_state",
+            },
+        )
+
+        self.open(authorize_url)
         self.assert_element("#user-email", timeout=25)
         self.type("#user-email", TEST_NHS_EMAIL)
         self.click('button[type="submit"]')
@@ -75,9 +97,49 @@ class MyTestClass(BaseCase):
             if not redirect_uri:
                 raise Exception(f"Redirect URI not found in response: {response}")
 
-            token = redirect_uri.split("=")[-1] if redirect_uri else None
-            if not token:
-                raise Exception(f"Token not found in redirect URI: {redirect_uri}")
+            code = redirect_uri.split("code=")[-1].split("&")[0] if redirect_uri else None
+            if not code:
+                raise Exception(f"Code not found in redirect URI: {redirect_uri}")
+
+            token = self._exchange_code_for_token(code)
+
+    def _exchange_code_for_token(self, code: str) -> str:
+        global code_verifier  # noqa: PLW0603
+        if code_verifier is None:
+            raise Exception("Code verifier not set")
+
+        token_url = self._build_token_url(NHS_LOGIN_API)
+        response = requests.post(
+            token_url,
+            data={
+                "grant_type": "authorization_code",
+                "code": code,
+                "code_verifier": code_verifier,
+                "client_id": "active10_mobile",
+                "redirect_uri": "active10dev://oauth_callback",
+            },
+            timeout=15,
+        )
+        data = response.json()
+        if "access_token" not in data:
+            raise Exception(f"Token not found in response: {data}")
+        return data["access_token"]
+
+    @staticmethod
+    def _create_code_challenge(verifier: str) -> str:
+        digest = hashlib.sha256(verifier.encode("ascii")).digest()
+        return base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
+
+    @staticmethod
+    def _build_authorize_url(base_url: str, params: dict[str, str]) -> str:
+        sep = "&" if "?" in base_url else "?"
+        return f"{base_url}{sep}{urlencode(params)}"
+
+    @staticmethod
+    def _build_token_url(base_url: str) -> str:
+        if "/authorize" in base_url:
+            return base_url.split("/authorize")[0].rstrip("/") + "/token"
+        return base_url.rstrip("/") + "/token"
 
 
 @pytest.fixture
