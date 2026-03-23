@@ -125,7 +125,10 @@ class MockNHSLoginService(NHSLoginService):
     code_store: ClassVar[dict[str, dict]] = {}
 
     def __init__(self):
-        super().__init__(UserCRUD())
+        self.userCRUD = UserCRUD()
+        self.token_crud = None
+        self.redis_service = None
+        self.pds_client = None
 
     def start_authorization(  # noqa: PLR0913
         self,
