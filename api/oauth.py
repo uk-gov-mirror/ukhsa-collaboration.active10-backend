@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Form, Query
 from fastapi.responses import RedirectResponse
 from starlette.responses import JSONResponse
@@ -8,7 +10,8 @@ router = APIRouter(tags=["OAuth"])
 
 
 @router.get("/authorize", response_class=RedirectResponse, status_code=307)
-async def authorize(
+async def authorize(  # noqa: PLR0913 - Lots of parameters but are needed for readability and to match the OAuth2 specification
+    service: Annotated[NHSLoginService, Depends()],
     response_type: str = Query(...),
     client_id: str = Query(...),
     redirect_uri: str = Query(...),
@@ -16,7 +19,6 @@ async def authorize(
     code_challenge_method: str = Query("S256"),
     state: str | None = Query(None),
     scope: str | None = Query(None),
-    service: NHSLoginService = Depends(),  # noqa: B008
 ):
     url = service.start_authorization(
         response_type=response_type,
@@ -31,13 +33,13 @@ async def authorize(
 
 
 @router.post("/token", response_class=JSONResponse, status_code=200)
-async def token(
+async def token(  # noqa: PLR0913 - Lots of parameters but they are needed for readability and to match the OAuth2 specification
+    service: Annotated[NHSLoginService, Depends()],
     grant_type: str = Form(...),
     code: str = Form(...),
     code_verifier: str = Form(...),
     redirect_uri: str | None = Form(None),
     client_id: str | None = Form(None),
-    service: NHSLoginService = Depends(),  # noqa: B008
 ):
     if grant_type != "authorization_code":
         return JSONResponse(status_code=400, content={"detail": "Unsupported grant_type"})

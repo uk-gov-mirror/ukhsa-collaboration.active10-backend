@@ -2,6 +2,7 @@ import base64
 import hashlib
 import secrets
 from datetime import datetime
+from typing import Annotated
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from fastapi import Depends, HTTPException
@@ -15,8 +16,8 @@ from models.user import User
 from nhs.authenticator import Authenticator
 from nhs.pds import PDSClient
 from schemas.user import NHSUser
-from utils.base_config import config
 from service.redis_service import RedisService, get_redis_service
+from utils.base_config import config
 
 auth_nhs = Authenticator(
     config.nhs_login_client_id,
@@ -25,13 +26,15 @@ auth_nhs = Authenticator(
     config.nhs_login_callback_url,
 )
 
+REDIS_UNAVAILABLE_DETAIL = "Redis unavailable"
+
 
 class NHSLoginService:
     def __init__(
         self,
-        user_crud: UserCRUD = Depends(),  # noqa: B008
-        user_token_crud: TokenCRUD = Depends(),  # noqa: B008
-        redis_service: RedisService = Depends(get_redis_service),  # noqa: B008
+        user_crud: Annotated[UserCRUD, Depends()],
+        user_token_crud: Annotated[TokenCRUD, Depends()],
+        redis_service: Annotated[RedisService, Depends(get_redis_service)],
     ) -> None:
         self.userCRUD = user_crud
         self.token_crud = user_token_crud
@@ -41,7 +44,7 @@ class NHSLoginService:
     STATE_TTL_SECONDS = 600
     AUTH_CODE_TTL_SECONDS = 600
 
-    def start_authorization(
+    def start_authorization(  # noqa: PLR0913
         self,
         response_type: str,
         client_id: str,
@@ -63,7 +66,7 @@ class NHSLoginService:
         if code_challenge_method not in {"S256"}:
             raise HTTPException(status_code=400, detail="Unsupported code_challenge_method")
         if not self.redis_service.is_available():
-            raise HTTPException(status_code=503, detail="Redis unavailable")
+            raise HTTPException(status_code=503, detail=REDIS_UNAVAILABLE_DETAIL)
 
         state = secrets.token_urlsafe(32)
         state_data = {
@@ -97,7 +100,7 @@ class NHSLoginService:
         if not state:
             raise HTTPException(status_code=400, detail="Missing state")
         if not self.redis_service.is_available():
-            raise HTTPException(status_code=503, detail="Redis unavailable")
+            raise HTTPException(status_code=503, detail=REDIS_UNAVAILABLE_DETAIL)
 
         state_data = self.redis_service.get_json(self._state_key(state))
         if not state_data:
@@ -174,7 +177,7 @@ class NHSLoginService:
         redirect_uri: str | None,
     ) -> dict[str, object]:
         if not self.redis_service.is_available():
-            raise HTTPException(status_code=503, detail="Redis unavailable")
+            raise HTTPException(status_code=503, detail=REDIS_UNAVAILABLE_DETAIL)
 
         code_key = self._code_key(code)
         code_data = self.redis_service.getdel_json(code_key)
@@ -240,7 +243,9 @@ class NHSLoginService:
             if value is not None:
                 query[key] = value
         new_query = urlencode(query)
-        return urlunsplit((url_parts.scheme, url_parts.netloc, url_parts.path, new_query, url_parts.fragment))
+        return urlunsplit(
+            (url_parts.scheme, url_parts.netloc, url_parts.path, new_query, url_parts.fragment)
+        )
 
     @staticmethod
     def _create_code_challenge(verifier: str) -> str:

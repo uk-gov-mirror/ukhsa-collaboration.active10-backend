@@ -26,8 +26,7 @@ TEST_NHS_EMAIL = settings.test_nhs_email
 TEST_NHS_PASSWORD = settings.test_nhs_password
 TEST_NHS_OTP = settings.test_nhs_otp
 
-token = None
-code_verifier = None
+oauth_state: dict[str, str | None] = {"token": None, "code_verifier": None}
 
 
 class MyTestClass(BaseCase):
@@ -43,9 +42,8 @@ class MyTestClass(BaseCase):
         return None, False
 
     def test_nhs_login_flow(self):
-        global code_verifier  # noqa: PLW0603
-        code_verifier = secrets.token_urlsafe(64)
-        challenge = self._create_code_challenge(code_verifier)
+        oauth_state["code_verifier"] = secrets.token_urlsafe(64)
+        challenge = self._create_code_challenge(oauth_state["code_verifier"])
 
         authorize_url = self._build_authorize_url(
             NHS_LOGIN_API,
@@ -89,24 +87,22 @@ class MyTestClass(BaseCase):
             self.wait(1)
             iteration += 1
 
-        global token  # noqa: PLW0603
-
         if callback_request:
             response = callback_request.response
             redirect_uri = response.headers.get("Location") if response.headers else None
             if not redirect_uri:
-                raise Exception(f"Redirect URI not found in response: {response}")
+                raise RuntimeError(f"Redirect URI not found in response: {response}")
 
             code = redirect_uri.split("code=")[-1].split("&")[0] if redirect_uri else None
             if not code:
-                raise Exception(f"Code not found in redirect URI: {redirect_uri}")
+                raise RuntimeError(f"Code not found in redirect URI: {redirect_uri}")
 
-            token = self._exchange_code_for_token(code)
+            oauth_state["token"] = self._exchange_code_for_token(code)
 
     def _exchange_code_for_token(self, code: str) -> str:
-        global code_verifier  # noqa: PLW0603
+        code_verifier = oauth_state["code_verifier"]
         if code_verifier is None:
-            raise Exception("Code verifier not set")
+            raise RuntimeError("Code verifier not set")
 
         token_url = self._build_token_url(NHS_LOGIN_API)
         response = requests.post(
@@ -122,7 +118,7 @@ class MyTestClass(BaseCase):
         )
         data = response.json()
         if "access_token" not in data:
-            raise Exception(f"Token not found in response: {data}")
+            raise RuntimeError(f"Token not found in response: {data}")
         return data["access_token"]
 
     @staticmethod
@@ -153,10 +149,9 @@ class TestNHSLoginToken:
         self.client = client
 
     def test_nhs_login_token(self):
-        global token  # noqa: PLW0602
-
+        token = oauth_state["token"]
         if token is None:
-            raise Exception("Token not captured during login flow")
+            raise RuntimeError("Token not captured during login flow")
 
         response = self.client.get(
             "/v1/users",

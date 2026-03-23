@@ -196,7 +196,7 @@ class RedisService:
     @classmethod
     def getdel(cls, key: str) -> Any | None:
         """
-        Atomically get and delete a key from Redis. 
+        Atomically get and delete a key from Redis.
 
         Args:
             key (str): The Redis key to fetch and delete.

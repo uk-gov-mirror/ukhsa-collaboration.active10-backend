@@ -1,5 +1,6 @@
 import time
 from contextlib import contextmanager
+from typing import ClassVar
 from uuid import uuid4
 
 import jwt
@@ -120,13 +121,13 @@ def db_session(db_engine):
 
 
 class MockNHSLoginService(NHSLoginService):
-    state_store: dict[str, dict] = {}
-    code_store: dict[str, dict] = {}
+    state_store: ClassVar[dict[str, dict]] = {}
+    code_store: ClassVar[dict[str, dict]] = {}
 
     def __init__(self):
         super().__init__(UserCRUD())
 
-    def start_authorization(
+    def start_authorization(  # noqa: PLR0913
         self,
         response_type: str,
         client_id: str,
