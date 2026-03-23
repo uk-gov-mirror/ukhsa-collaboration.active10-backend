@@ -134,7 +134,7 @@ class MyTestClass(BaseCase):
     @staticmethod
     def _build_token_url(base_url: str) -> str:
         if "/authorize" in base_url:
-            return base_url.split("/authorize")[0].rstrip("/") + "/token"
+            return base_url.split("/authorize", maxsplit=1)[0].rstrip("/") + "/token"
         return base_url.rstrip("/") + "/token"
 
 
