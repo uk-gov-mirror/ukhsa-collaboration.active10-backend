@@ -47,7 +47,7 @@ jobs:
       id-token: write
       actions: read
       pull-requests: write
-    uses: ukhsa-collaboration/devops-github-reusable-workflows/.github/workflows/container-image-build-python-aws-ecs.yml@0c73ef2a305de93ab35aa538863f6d2c282ee318
+    uses: ukhsa-collaboration/devops-application-cicd/.github/workflows/container-image-build-python-aws-ecs.yml@5816560d4e147ab976b64964103bd61d2e811042 # v0.0.3
     with:
       app_name: ${{ vars.APP_NAME }}
       service_identifier: ${{ vars.ECR_NAMESPACE }}
@@ -56,7 +56,9 @@ jobs:
       unit_test_command: sudo apt-get update && sudo apt-get -y install make && make unit-tests
       push_image: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       release_tag: ${{ needs.prepare-release-tag.outputs.release_tag }}
-      sign_release: true
+      registry_account_id: "636728427214"
+      aws_registry_role_name: "github-active-10-backend-ecr"
+      sign_release: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       lint_dockerfile: false
       deploy_environments: >-
         [
