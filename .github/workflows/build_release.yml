@@ -25,7 +25,7 @@ jobs:
     steps:
       - name: Checkout repository
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        uses: actions/checkout@900f2210b1d28bbbd0bd22d17926b9e224e8f231
 
       - name: Bump tag
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
