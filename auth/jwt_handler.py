@@ -1,20 +1,32 @@
-import time
-
 import jwt
-from fastapi import HTTPException
+from fastapi import HTTPException, status
+from jwt import PyJWKClient
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError, PyJWKClientError
 
 from utils.base_config import config, logger
 
-JWT_SECRET = config.auth_jwt_secret
-JWT_ALGORITHM = "HS256"
-TOKEN_EXPIRY_30_DAY_AS_SEC = 2592000
+ACCEPTED_JWT_ALGORITHM = "RS256"
+IDENTITY_BROKER_JWKS_URI = config.identity_broker_jwks_uri
+IDENTITY_BROKER_ISSUER = config.identity_broker_issuer
+REQUIRED_API_AUDIENCE = config.api_jwt_audience
+IDENTITY_BROKER_JWKS_HEADERS = {"User-Agent": "active10-backend"}
+REQUIRED_REGISTERED_CLAIMS = ("exp", "iss", "aud", "sub")
+
+identity_broker_jwks_client = PyJWKClient(
+    IDENTITY_BROKER_JWKS_URI,
+    headers=IDENTITY_BROKER_JWKS_HEADERS,
+)
 
 
-def sign_jwt(user_id: str) -> dict[str, str]:
-    payload = {"user_id": user_id, "exp": time.time() + TOKEN_EXPIRY_30_DAY_AS_SEC}
-    token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+def _invalid_token_exception(detail: str = "Token is not valid") -> HTTPException:
+    return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
 
-    return token
+
+def _validate_required_claims(payload: dict) -> None:
+    subject = payload.get("sub")
+    if not isinstance(subject, str) or not subject.strip():
+        logger.warning("JWT rejected: missing subject claim")
+        raise _invalid_token_exception()
 
 
 def decode_jwt(token: str) -> dict:
@@ -31,13 +43,30 @@ def decode_jwt(token: str) -> dict:
         HTTPException: If the token is expired, invalid, or an error occurs during decoding.
     """
     try:
-        decoded_token = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        return decoded_token
+        algorithm = jwt.get_unverified_header(token).get("alg")
+    except InvalidTokenError as exc:
+        logger.warning("JWT rejected: invalid token header")
+        raise _invalid_token_exception() from exc
 
-    except jwt.ExpiredSignatureError as err:
-        raise HTTPException(status_code=401, detail="Token is expired") from err
-    except jwt.InvalidTokenError as err:
-        raise HTTPException(status_code=401, detail="Token is invalid") from err
-    except Exception as err:
-        logger.error(f"Error while decoding token: {err!s}")
-        raise HTTPException(status_code=500, detail="Something went wrong") from err
+    if algorithm != ACCEPTED_JWT_ALGORITHM:
+        logger.warning("JWT rejected: unsupported algorithm %s", algorithm)
+        raise _invalid_token_exception()
+
+    try:
+        signing_key = identity_broker_jwks_client.get_signing_key_from_jwt(token)
+        payload = jwt.decode(
+            token,
+            signing_key.key,
+            issuer=IDENTITY_BROKER_ISSUER,
+            audience=REQUIRED_API_AUDIENCE,
+            algorithms=[ACCEPTED_JWT_ALGORITHM],
+            options={"require": REQUIRED_REGISTERED_CLAIMS},
+        )
+        _validate_required_claims(payload)
+        return payload
+    except ExpiredSignatureError as exc:
+        logger.info("JWT rejected: token expired")
+        raise _invalid_token_exception("Token has expired") from exc
+    except (InvalidTokenError, PyJWKClientError) as exc:
+        logger.warning("JWT rejected: invalid token")
+        raise _invalid_token_exception() from exc

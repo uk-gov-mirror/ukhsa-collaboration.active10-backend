@@ -20,7 +20,7 @@ async def create_user_motivation(
     payload: CreateUpdateUserMotivationRequest,
     crud: Annotated[UserMotivationCRUD, Depends()],
 ):
-    new_motivation = crud.create_motivation(user_data["user_id"], payload)
+    new_motivation = crud.create_motivation(user_data["sub"], payload)
     return new_motivation
 
 
@@ -29,7 +29,7 @@ async def get_all_motivations(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     crud: Annotated[UserMotivationCRUD, Depends()],
 ):
-    return crud.get_all_by_user(user_data["user_id"])
+    return crud.get_all_by_user(user_data["sub"])
 
 
 @router.get("/{motivation_id}", response_model=UserMotivationResponse)
@@ -40,10 +40,10 @@ async def get_motivation_by_id(
 ):
     motivation = crud.get_by_id(motivation_id)
     logger.info(f"Motivation ID: {motivation.id}")
-    logger.info(f"User ID: {user_data['user_id']}")
-    logger.info(f"condition: {str(motivation.user_id) != user_data['user_id']}")
+    logger.info(f"User ID: {user_data['sub']}")
+    logger.info(f"condition: {str(motivation.user_id) != user_data['sub']}")
 
-    if not motivation or str(motivation.user_id) != user_data["user_id"]:
+    if not motivation or str(motivation.user_id) != user_data["sub"]:
         raise HTTPException(status_code=404, detail="Motivation not found")
 
     return motivation
@@ -57,7 +57,7 @@ async def update_user_motivation(
     crud: Annotated[UserMotivationCRUD, Depends()],
 ):
     motivation = crud.get_by_id(motivation_id)
-    if not motivation or str(motivation.user_id) != user_data["user_id"]:
+    if not motivation or str(motivation.user_id) != user_data["sub"]:
         raise HTTPException(status_code=404, detail="Motivation not found")
 
     updated = crud.update_motivation(motivation, payload)
@@ -71,7 +71,7 @@ async def delete_user_motivation(
     crud: Annotated[UserMotivationCRUD, Depends()],
 ):
     motivation = crud.get_by_id(motivation_id)
-    if not motivation or str(motivation.user_id) != user_data["user_id"]:
+    if not motivation or str(motivation.user_id) != user_data["sub"]:
         raise HTTPException(status_code=404, detail="Motivation not found")
 
     crud.delete_motivation(motivation)

@@ -16,13 +16,13 @@ async def create_walking_plan(
     payload: WalkingPlanRequestSchema,
     walking_plan_crud: Annotated[UserWalkingPlanCRUD, Depends()],
 ):
-    existing_plan = walking_plan_crud.get_walking_plan_by_user_id(user_data["user_id"])
+    existing_plan = walking_plan_crud.get_walking_plan_by_user_id(user_data["sub"])
 
     if existing_plan:
         raise HTTPException(status_code=400, detail="User walking plan already exists")
 
     new_walking_plan = UserWalkingPlan(
-        user_id=user_data["user_id"], walking_plan_data=payload.walking_plan_data
+        user_id=user_data["sub"], walking_plan_data=payload.walking_plan_data
     )
     created_walking_plan = walking_plan_crud.create_walking_plan(new_walking_plan)
     return created_walking_plan
@@ -33,7 +33,7 @@ async def get_user_walking_plan(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     walking_plan_crud: Annotated[UserWalkingPlanCRUD, Depends()],
 ):
-    walking_plan = walking_plan_crud.get_walking_plan_by_user_id(user_data["user_id"])
+    walking_plan = walking_plan_crud.get_walking_plan_by_user_id(user_data["sub"])
     if not walking_plan:
         raise HTTPException(status_code=404, detail="User walking plan not found")
     return walking_plan
@@ -45,7 +45,7 @@ async def update_walking_plan(
     payload: WalkingPlanRequestSchema,
     walking_plan_crud: Annotated[UserWalkingPlanCRUD, Depends()],
 ):
-    user_walking_plan = walking_plan_crud.get_walking_plan_by_user_id(user_data["user_id"])
+    user_walking_plan = walking_plan_crud.get_walking_plan_by_user_id(user_data["sub"])
 
     if not user_walking_plan:
         raise HTTPException(status_code=404, detail="User walking plan not found")
@@ -59,7 +59,7 @@ async def delete_walking_plan(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     walking_plan_crud: Annotated[UserWalkingPlanCRUD, Depends()],
 ):
-    user_walking_plan = walking_plan_crud.get_walking_plan_by_user_id(user_data["user_id"])
+    user_walking_plan = walking_plan_crud.get_walking_plan_by_user_id(user_data["sub"])
 
     if not user_walking_plan:
         raise HTTPException(status_code=404, detail="User walking plan not found")

@@ -15,7 +15,7 @@ async def get_user_activity_levels_list(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     crud: Annotated[UserActivityLevelCRUD, Depends()],
 ):
-    activity_levels = crud.get_all_by_user(user_data["user_id"])
+    activity_levels = crud.get_all_by_user(user_data["sub"])
 
     return activity_levels
 
@@ -26,7 +26,7 @@ async def get_user_activity_level(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     crud: Annotated[UserActivityLevelCRUD, Depends()],
 ):
-    activity_level = crud.get_by_id(user_data["user_id"], activity_level_id)
+    activity_level = crud.get_by_id(user_data["sub"], activity_level_id)
 
     if not activity_level:
         raise HTTPException(status_code=404, detail="Data not found")
@@ -40,7 +40,7 @@ async def create_activity_level(
     payload: ActivityLevelRequestSchema,
     crud: Annotated[UserActivityLevelCRUD, Depends()],
 ):
-    new_activity_level = crud.create(user_data["user_id"], payload=payload)
+    new_activity_level = crud.create(user_data["sub"], payload=payload)
     return new_activity_level
 
 
@@ -51,7 +51,7 @@ async def update_activity_level(
     payload: ActivityLevelRequestSchema,
     crud: Annotated[UserActivityLevelCRUD, Depends()],
 ):
-    existing_level = crud.get_by_id(user_data["user_id"], activity_level_id)
+    existing_level = crud.get_by_id(user_data["sub"], activity_level_id)
     if not existing_level:
         raise HTTPException(status_code=404, detail="Data not found")
 
@@ -65,7 +65,7 @@ async def delete_activity_level(
     activity_level_id: UUID,
     crud: Annotated[UserActivityLevelCRUD, Depends()],
 ):
-    existing_level = crud.get_by_id(user_data["user_id"], activity_level_id)
+    existing_level = crud.get_by_id(user_data["sub"], activity_level_id)
     if not existing_level:
         raise HTTPException(status_code=404, detail="Data not found")
 

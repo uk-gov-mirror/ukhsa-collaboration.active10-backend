@@ -16,5 +16,5 @@ async def save_activity(
     activity_payload: UserActivityRequestSchema,
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
 ):
-    background_task.add_task(load_activities_data_in_sns, activity_payload, user_data["user_id"])
+    background_task.add_task(load_activities_data_in_sns, activity_payload, user_data["sub"])
     return {"message": "Success"}

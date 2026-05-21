@@ -4,7 +4,6 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
 from api.healthcheck import router as healthcheck
-from api.nhs_login import router as nhs_login
 from api.unsubscribe import router as unsubscribe
 from api.v1 import router as api_v1
 from api.v2 import router as api_v2
@@ -14,8 +13,8 @@ APP_VERSION = config.app_version
 APP_CODE_COMMIT_HASH = config.app_code_commit_hash
 
 app = FastAPI(
-    title="Active 10 NHS Login Backend Service",
-    description=("Backend NHS Login service for Active 10 application.\n\n"),
+    title="Active 10 Backend Service",
+    description=("Backend service for Active 10 application.\n\n"),
     version=APP_VERSION,
 )
 
@@ -56,6 +55,5 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(api_v1.router)
 app.include_router(api_v2.router)
-app.include_router(nhs_login)
 app.include_router(healthcheck)
 app.include_router(unsubscribe)

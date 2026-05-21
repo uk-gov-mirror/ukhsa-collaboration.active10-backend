@@ -19,7 +19,7 @@ async def get_user(
     user_service: Annotated[UserService, Depends()],
     user_crud: Annotated[UserCRUD, Depends()],
 ):
-    user = user_crud.get_user_by_id(user_data["user_id"])
+    user = user_crud.get_user_by_id(user_data["sub"])
     user_details = user_service.get_user_profile(user)
     return user_details
 
@@ -30,8 +30,8 @@ async def subscribe_email_preference(
     subscription_crud: Annotated[SubscriptionCRUD, Depends()],
     payload: EmailPreferenceRequest,
 ):
-    subscription_crud.subscribe_email_preferences(user_data["user_id"], payload.name)
-    logger.info(f"User (id = {user_data['user_id']}) is subscribed to email preferences")
+    subscription_crud.subscribe_email_preferences(user_data["sub"], payload.name)
+    logger.info(f"User (id = {user_data['sub']}) is subscribed to email preferences")
 
     return JSONResponse(status_code=200, content={"message": "Subscribed to email preferences"})
 
@@ -42,8 +42,8 @@ async def unsubscribe_email_preference(
     subscription_crud: Annotated[SubscriptionCRUD, Depends()],
     payload: EmailPreferenceRequest,
 ):
-    subscription_crud.unsubscribe_email_preferences(user_data["user_id"], payload.name)
-    logger.info(f"User (id = {user_data['user_id']}) is unsubscribed from email preferences")
+    subscription_crud.unsubscribe_email_preferences(user_data["sub"], payload.name)
+    logger.info(f"User (id = {user_data['sub']}) is unsubscribed from email preferences")
 
     return JSONResponse(status_code=200, content={"message": "Unsubscribed from email preferences"})
 

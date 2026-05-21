@@ -1,13 +1,12 @@
 # Active10 Backend Service
 
-A FastAPI-based backend service for the Active10 mobile app, providing activity tracking, and NHS Login integration.
+A FastAPI-based backend service for the Active10 mobile app, providing activity tracking APIs.
 
 ### Project Structure
 ```
 ├── api/                    # API endpoints
 │   ├── v1/                # Version 1 API routes
 │   ├── v2/                # Version 2 API routes
-│   ├── nhs_login.py       # NHS Login authentication
 │   └── healthcheck.py     # Health monitoring
 ├── auth/                  # Authentication & authorization
 ├── crud/                  # Database operations
@@ -15,7 +14,6 @@ A FastAPI-based backend service for the Active10 mobile app, providing activity 
 ├── models/                # SQLAlchemy database models
 ├── schemas/               # Pydantic request/response schemas
 ├── service/               # Business logic layer
-├── nhs/                   # NHS API integrations
 ├── gojauntly/             # GoJauntly integration
 ├── utils/                 # Utility functions
 └── tests/                 # Test suites
@@ -60,7 +58,6 @@ Tests are configured in `pyproject.toml` with coverage reporting for:
 - Database operations (`crud/`)
 - Models (`models/`)
 - Authentication (`auth/`)
-- NHS integrations (`nhs/`)
 
 ## License
 

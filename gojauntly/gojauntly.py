@@ -38,11 +38,6 @@ class GoJauntlyApi:
         self.secret_key = secret_key
         self.issuer_id = issuer_id
         self._debug: bool = False
-        self._initialize_token()
-
-    def _initialize_token(self):
-        """Generate the initial token."""
-        _ = self.token
 
     def _generate_token(self) -> str:
         """Generate a new JWT token."""

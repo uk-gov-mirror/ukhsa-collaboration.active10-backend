@@ -19,7 +19,7 @@ async def save_activity(
     activity_payload: UserActivityRequestSchema,
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
 ):
-    background_task.add_task(load_activities_data_in_sns, activity_payload, user_data["user_id"])
+    background_task.add_task(load_activities_data_in_sns, activity_payload, user_data["sub"])
     return {"message": "Success"}
 
 
@@ -68,7 +68,7 @@ async def list_activities(
         if v is not None
     }
 
-    activities = get_activities_by_filters(user_id=user_data["user_id"], filters=filters)
+    activities = get_activities_by_filters(user_id=user_data["sub"], filters=filters)
 
     if not activities:
         raise HTTPException(status_code=404, detail="Data not found")

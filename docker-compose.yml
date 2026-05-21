@@ -12,36 +12,20 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  redis:
-    image: redis:8.0-alpine
-    command: redis-server --appendonly yes
-    networks:
-      - proxy
-    ports:
-      - "6379:6379"
-
   app:
     build: .
     command: "./entrypoint.sh"
     environment:
       APP_URI: ${APP_URI:-http://localhost:8000}
-      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-local-secret}
       GOJAUNTLY_KEY_ID: ${GOJAUNTLY_KEY_ID:-dummy}
       GOJAUNTLY_PRIVATE_KEY: ${GOJAUNTLY_PRIVATE_KEY}
       GOJAUNTLY_ISSUER_ID: ${GOJAUNTLY_ISSUER_ID:-dummy}
-      NHS_API_KEY: ${NHS_API_KEY:-dummy}
-      NHS_API_URL: ${NHS_API_URL:-http://localhost}
-      NHS_LOGIN_AUTHORITY_URL: ${NHS_LOGIN_AUTHORITY_URL:-https://auth.sandpit.signin.nhs.uk}
-      NHS_LOGIN_CALLBACK_URL: ${NHS_LOGIN_CALLBACK_URL:-https://active10.localhost}
-      NHS_LOGIN_CLIENT_ID: ${NHS_LOGIN_CLIENT_ID:-dummy}
-      NHS_LOGIN_SCOPES: ${NHS_LOGIN_SCOPES:-dummy}
       NHS_PDS_JWT_PRIVATE_KEY: ${NHS_PDS_JWT_PRIVATE_KEY:-dummy}
       SENDGRID_WEBHOOK_PUBLIC_KEY: ${SENDGRID_WEBHOOK_PUBLIC_KEY:-dummy}
       AWS_SQS_QUEUE_URL: "http://sqs.eu-west-2.localhost.localstack:4566/000000000000/aw-active10-local-sqs-active10.fifo"
       AWS_SQS_ACTIVITIES_MIGRATIONS_QUEUE_URL: "http://sqs.eu-west-2.localhost.localstack:4566/000000000000/aw-active10-local-sqs-activities-migrations.fifo"
       AWS_SNS_ACTIVITY_TOPIC_ARN: "arn:aws:sns:eu-west-2:000000000000:aw-active10-local-sns-activity-topic"
       AWS_SNS_ACTIVITIES_MIGRATION_TOPIC_ARN: "arn:aws:sns:eu-west-2:000000000000:aw-active10-local-activities-migrations"
-      REDIS_HOST: "redis"
       # Only required locally
       AWS_DEFAULT_REGION: "eu-west-2"
       AWS_REGION: "eu-west-2"
@@ -66,7 +50,6 @@ services:
       - .:/app
     depends_on:
       - db
-      - redis
 
   traefik:
     image: "traefik:v3.5"

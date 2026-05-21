@@ -10,10 +10,10 @@ requires-python = ">=3.10"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["tests/**/*.py", "test_*.py"]
-addopts = "--cov=gojauntly --cov=api --cov=nhs --cov=service --cov=crud --cov=models --cov=db --cov-report=term-missing --cov-branch"
+addopts = "--cov=gojauntly --cov=api --cov=service --cov=crud --cov=models --cov=db --cov-report=term-missing --cov-branch"
 
 [tool.coverage.run]
-source = ["service","crud","models","db","api","gojauntly","auth","nhs"]
+source = ["service","crud","models","db","api","gojauntly","auth"]
 branch = true
 omit = ["tests/*","**/migrations/*"]
 

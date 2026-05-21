@@ -18,7 +18,7 @@ async def create_daily_target(
     daily_target_crud: Annotated[UserDailyTargetCRUD, Depends()],
 ):
     existing_target = daily_target_crud.get_user_target_by_payload_data(
-        user_id=user_data["user_id"], data=payload
+        user_id=user_data["sub"], data=payload
     )
 
     if existing_target:
@@ -27,7 +27,7 @@ async def create_daily_target(
         )
 
     new_daily_target = UserDailyTarget(
-        user_id=user_data["user_id"],
+        user_id=user_data["sub"],
         date=payload.date,
         daily_target=payload.daily_target,
     )
@@ -55,7 +55,7 @@ async def get_user_daily_targets_list(  # noqa: PLR0913
 
     filters = {k: v for k, v in filters.items() if v is not None}
 
-    daily_targets = daily_target_crud.get_daily_targets_by_filters(user_data["user_id"], filters)
+    daily_targets = daily_target_crud.get_daily_targets_by_filters(user_data["sub"], filters)
 
     if not daily_targets:
         raise HTTPException(status_code=404, detail="Data not found")
@@ -70,7 +70,7 @@ async def get_user_daily_target(
     daily_target_crud: Annotated[UserDailyTargetCRUD, Depends()],
 ):
     daily_target = daily_target_crud.get_user_daily_target_by_id(
-        user_id=user_data["user_id"], target_id=target_id
+        user_id=user_data["sub"], target_id=target_id
     )
 
     if not daily_target:
@@ -87,7 +87,7 @@ async def update_daily_target(
     daily_target_crud: Annotated[UserDailyTargetCRUD, Depends()],
 ):
     user_daily_target = daily_target_crud.get_user_daily_target_by_id(
-        user_id=user_data["user_id"], target_id=target_id
+        user_id=user_data["sub"], target_id=target_id
     )
 
     if not user_daily_target:
@@ -104,7 +104,7 @@ async def delete_daily_target(
     daily_target_crud: Annotated[UserDailyTargetCRUD, Depends()],
 ):
     user_daily_target = daily_target_crud.get_user_daily_target_by_id(
-        user_id=user_data["user_id"], target_id=target_id
+        user_id=user_data["sub"], target_id=target_id
     )
 
     if not user_daily_target:
