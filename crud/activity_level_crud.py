@@ -13,7 +13,7 @@ class UserActivityLevelCRUD:
     def __init__(self, db: Session = Depends(get_db_session)) -> None:  # noqa: B008
         self.db = db
 
-    def get_latest_by_user(self, user_id: UUID) -> UserActivityLevel | None:
+    def get_latest_by_user(self, user_id: str) -> UserActivityLevel | None:
         return (
             self.db.query(UserActivityLevel)
             .filter(UserActivityLevel.user_id == user_id)
@@ -21,7 +21,7 @@ class UserActivityLevelCRUD:
             .first()
         )
 
-    def get_by_id(self, user_id: UUID, activity_level_id: UUID) -> UserActivityLevel | None:
+    def get_by_id(self, user_id: str, activity_level_id: UUID) -> UserActivityLevel | None:
         return (
             self.db.query(UserActivityLevel)
             .filter(
@@ -31,7 +31,7 @@ class UserActivityLevelCRUD:
             .first()
         )
 
-    def get_all_by_user(self, user_id: UUID) -> list[UserActivityLevel]:
+    def get_all_by_user(self, user_id: str) -> list[UserActivityLevel]:
         return (
             self.db.query(UserActivityLevel)
             .filter(UserActivityLevel.user_id == user_id)
@@ -39,7 +39,7 @@ class UserActivityLevelCRUD:
             .all()
         )
 
-    def create(self, user_id: UUID, payload: ActivityLevelRequestSchema) -> UserActivityLevel:
+    def create(self, user_id: str, payload: ActivityLevelRequestSchema) -> UserActivityLevel:
         current_timestamp = int(datetime.now(timezone.utc).timestamp())  # noqa: UP017 Not supported in Python 3.10
         new_activity_level = UserActivityLevel(
             user_id=user_id,

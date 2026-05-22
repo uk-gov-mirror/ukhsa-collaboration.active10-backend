@@ -45,7 +45,7 @@ def test_create_user_activity_level_unauthenticated(client, unauthenticated_user
         headers={"Authorization": f"Bearer {unauthenticated_user.token.token}"},
     )
 
-    assert response.status_code == 404  # noqa: PLR2004
+    assert response.status_code == 403  # noqa: PLR2004
 
 
 def test_get_user_activity_levels(client, authenticated_user):
@@ -135,7 +135,7 @@ def test_update_activity_level_unauthenticated(client, unauthenticated_user):
         headers={"Authorization": f"Bearer {unauthenticated_user.token.token}"},
     )
 
-    assert response.status_code == 404  # noqa: PLR2004
+    assert response.status_code == 403  # noqa: PLR2004
 
 
 def test_delete_activity_level_authenticated_user(client, authenticated_user):

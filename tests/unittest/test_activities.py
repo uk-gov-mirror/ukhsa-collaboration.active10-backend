@@ -7,7 +7,7 @@ import pytest
 from crud.activities_crud import create_activity
 from schemas.activity import UserActivityRequestSchema
 from service.activity_service import load_activities_data_in_sns
-from tests.unittest.conftest import override_get_db_context_session, user_uuid_pk
+from tests.unittest.conftest import override_get_db_context_session, user_sub
 
 current_timestamp = int(datetime.now().timestamp())
 
@@ -58,7 +58,7 @@ def test_create_activities(client, authenticated_user, db_session):
         mock_add_task.assert_called_once()
         args, _kwargs = mock_add_task.call_args
         assert args[0] == load_activities_data_in_sns
-        assert str(args[2]) == str(user_uuid_pk)
+        assert str(args[2]) == user_sub
 
 
 def test_create_activities_without_rewards(client, authenticated_user, db_session):
@@ -89,7 +89,7 @@ def test_create_activities_without_rewards(client, authenticated_user, db_sessio
         mock_add_task.assert_called_once()
         args, _kwargs = mock_add_task.call_args
         assert args[0] == load_activities_data_in_sns
-        assert str(args[2]) == str(user_uuid_pk)
+        assert str(args[2]) == user_sub
 
 
 def test_create_activities_missing_fields(client, authenticated_user):
@@ -151,4 +151,4 @@ def test_list_activities_by_unauthenticated_user(client, unauthenticated_user):
         headers={"Authorization": f"Bearer {unauthenticated_user.token.token}"},
     )
 
-    assert response.status_code == 404  # noqa: PLR2004
+    assert response.status_code == 403  # noqa: PLR2004

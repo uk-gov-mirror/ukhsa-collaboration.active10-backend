@@ -16,7 +16,7 @@ class UserMotivationCRUD:
     def get_by_id(self, motivation_id: UUID) -> UserMotivation | None:
         return self.db.query(UserMotivation).filter_by(id=motivation_id).first()
 
-    def get_all_by_user(self, user_id: UUID) -> list[UserMotivation]:
+    def get_all_by_user(self, user_id: str) -> list[UserMotivation]:
         return (
             self.db.query(UserMotivation)
             .filter(UserMotivation.user_id == user_id)
@@ -25,7 +25,7 @@ class UserMotivationCRUD:
         )
 
     def create_motivation(
-        self, user_id: UUID, payload: CreateUpdateUserMotivationRequest
+        self, user_id: str, payload: CreateUpdateUserMotivationRequest
     ) -> UserMotivation:
         new_motivation = UserMotivation(
             user_id=user_id,

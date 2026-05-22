@@ -14,4 +14,10 @@ alembic upgrade head
 # python scripts/activities_partitioning.py
 
 echo "Starting FastAPI application..."
-uvicorn main:app --host 0.0.0.0 --port 8000
+
+if [ "$DEBUG" = "True" ]; then
+  echo "Running in debug mode. Do not use this in production!"
+  RELOAD_FLAG="--reload"
+fi
+
+uvicorn main:app --host 0.0.0.0 --port 8000 $RELOAD_FLAG

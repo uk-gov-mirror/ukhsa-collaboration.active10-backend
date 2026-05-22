@@ -42,7 +42,7 @@ def test_create_walking_plan_by_unauthenticated_user(client, unauthenticated_use
         headers={"Authorization": f"Bearer {unauthenticated_user.token.token}"},
     )
 
-    assert response.status_code == 404  # noqa: PLR2004
+    assert response.status_code == 403  # noqa: PLR2004
 
 
 def test_get_user_walking_plan_by_unauthenticated_user(client, unauthenticated_user):
@@ -51,7 +51,7 @@ def test_get_user_walking_plan_by_unauthenticated_user(client, unauthenticated_u
         headers={"Authorization": f"Bearer {unauthenticated_user.token.token}"},
     )
 
-    assert response.status_code == 404  # noqa: PLR2004
+    assert response.status_code == 403  # noqa: PLR2004
 
 
 def test_get_user_walking_plan(client, authenticated_user):
@@ -100,7 +100,7 @@ def test_update_walking_plan_by_unauthenticated_user(client, unauthenticated_use
         headers={"Authorization": f"Bearer {unauthenticated_user.token.token}"},
     )
 
-    assert response.status_code == 404  # noqa: PLR2004
+    assert response.status_code == 403  # noqa: PLR2004
 
 
 def test_delete_walking_plan_by_unauthenticated_user(client, unauthenticated_user):
@@ -109,7 +109,7 @@ def test_delete_walking_plan_by_unauthenticated_user(client, unauthenticated_use
         headers={"Authorization": f"Bearer {unauthenticated_user.token.token}"},
     )
 
-    assert response.status_code == 404  # noqa: PLR2004
+    assert response.status_code == 403  # noqa: PLR2004
 
 
 def test_delete_walking_plan(client, authenticated_user):

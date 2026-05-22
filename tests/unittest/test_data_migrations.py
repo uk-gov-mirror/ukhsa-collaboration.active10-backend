@@ -113,7 +113,7 @@ def test_post_activities_migrations_with_unauthenticated_user(client, unauthenti
         headers={"Authorization": f"Bearer {unauthenticated_user.token.token}"},
     )
 
-    assert response.status_code == 404  # noqa: PLR2004
+    assert response.status_code == 403  # noqa: PLR2004
 
 
 def test_post_activities_migrations_with_missing_month_field(client, authenticated_user):

@@ -14,6 +14,6 @@ class CreateUpdateUserMotivationRequest(BaseModel):
 
 class UserMotivationResponse(BaseModel):
     id: UUID
-    user_id: UUID
+    user_id: str
     created_at: int
     goals: list[GoalItem]

@@ -27,4 +27,4 @@ class ActivityResponseSchema(BaseModel):
     walking_minutes: int
     steps: int
     rewards: list[dict[str, Any]] | None = []
-    user_id: UUID
+    user_id: str

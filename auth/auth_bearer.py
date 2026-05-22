@@ -23,4 +23,6 @@ def get_authenticated_user_data(
     Raises:
         HTTPException: If the token is invalid or expired.
     """
-    return decode_jwt(token.credentials)
+    user_data = decode_jwt(token.credentials)
+    user_data["access_token"] = token.credentials
+    return user_data

@@ -38,7 +38,7 @@ def test_create_daily_target_by_unauthenticated_user(client, unauthenticated_use
         headers={"Authorization": f"Bearer {unauthenticated_user.token.token}"},
     )
 
-    assert response.status_code == 404  # noqa: PLR2004
+    assert response.status_code == 403  # noqa: PLR2004
 
 
 def test_get_user_all_daily_targets_by_unauthenticated_user(
@@ -50,7 +50,7 @@ def test_get_user_all_daily_targets_by_unauthenticated_user(
         headers={"Authorization": f"Bearer {unauthenticated_user.token.token}"},
     )
 
-    assert response.status_code == 404  # noqa: PLR2004
+    assert response.status_code == 403  # noqa: PLR2004
 
 
 def test_get_user_all_daily_target(client, authenticated_user):  # noqa: F811
@@ -113,7 +113,7 @@ def test_update_daily_target_by_unauthenticated_user(client, unauthenticated_use
         headers={"Authorization": f"Bearer {unauthenticated_user.token.token}"},
     )
 
-    assert response.status_code == 404  # noqa: PLR2004
+    assert response.status_code == 403  # noqa: PLR2004
 
 
 def test_delete_daily_target_by_unauthenticated_user(client, unauthenticated_user):  # noqa
@@ -124,7 +124,7 @@ def test_delete_daily_target_by_unauthenticated_user(client, unauthenticated_use
         headers={"Authorization": f"Bearer {unauthenticated_user.token.token}"},
     )
 
-    assert response.status_code == 404  # noqa: PLR2004
+    assert response.status_code == 403  # noqa: PLR2004
 
 
 def test_delete_daily_target(client, authenticated_user):  # noqa

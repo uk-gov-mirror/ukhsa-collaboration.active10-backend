@@ -6,7 +6,6 @@ from sqlalchemy import (
     UUID,
     BigInteger,
     Column,
-    ForeignKey,
     Integer,
     String,
 )
@@ -27,4 +26,4 @@ class Activity(Base):
     steps = Column(Integer, nullable=False)
     rewards = Column(ARRAY(JSON), nullable=True)
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    user_id = Column(String(length=255), nullable=False, index=True)

@@ -32,7 +32,7 @@ class LogoutUserEmailLogs(Base):
     __tablename__ = "logout_user_email_logs"
 
     id = Column(UUID(as_uuid=True), default=uuid4, primary_key=True)
-    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    user_id = Column(String(length=255), nullable=False, index=True)
     user_email = Column(String(length=254), nullable=False, index=True)
     notification_type = Column(
         SQLAlchemyEnum(*LogoutNotificationType.value_choices(), name="notification_type_enum"),
@@ -65,7 +65,7 @@ class MonthlyReportEmailLogs(Base):
     __tablename__ = "monthly_report_email_logs"
 
     id = Column(UUID(as_uuid=True), default=uuid4, primary_key=True)
-    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    user_id = Column(String(length=255), nullable=False, index=True)
     user_email = Column(String(length=254), nullable=False, index=True)
     batch_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     report_month = Column(String(length=12), nullable=False, index=True)

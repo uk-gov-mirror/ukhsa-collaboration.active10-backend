@@ -7,10 +7,11 @@ class Config(BaseSettings):
     app_version: str = "dev"
     app_code_commit_hash: str = "dev"
 
-    identity_broker_jwks_uri: str = "https://dev.auth.betterhealthapps.com/realms/better-health-apps/protocol/openid-connect/certs"
-    identity_broker_issuer: str = "https://dev.auth.betterhealthapps.com/realms/better-health-apps"
-    api_jwt_audience: str = "active10-api"
-    nhs_pds_jwt_private_key: str
+    identity_broker_jwks_uri: str
+    identity_broker_userinfo_uri: str
+    identity_broker_issuer: str
+    api_jwt_audience: str
+    debug: bool = False
     db_host: str
     db_port: str
     db_user: str
@@ -25,6 +26,7 @@ class Config(BaseSettings):
     aws_sns_activity_topic_arn: str
     aws_sns_activities_migration_topic_arn: str
     sendgrid_webhook_public_key: str
+    email_hash_secret: str
     # Extra allowed for adding AWS_ local dummy secrets in the .env file
     model_config = SettingsConfigDict(
         env_file=(".env", "tests/tests.env"),

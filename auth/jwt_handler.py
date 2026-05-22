@@ -2,6 +2,7 @@ import jwt
 from fastapi import HTTPException, status
 from jwt import PyJWKClient
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError, PyJWKClientError
+import ssl
 
 from utils.base_config import config, logger
 
@@ -12,9 +13,13 @@ REQUIRED_API_AUDIENCE = config.api_jwt_audience
 IDENTITY_BROKER_JWKS_HEADERS = {"User-Agent": "active10-backend"}
 REQUIRED_REGISTERED_CLAIMS = ("exp", "iss", "aud", "sub")
 
+# In development, we will likely be connecting to a Keycloak instance with a self-signed certificate.
+UNVERIFIED_SSL_CONTEXT = ssl._create_unverified_context() if config.debug else None
+
 identity_broker_jwks_client = PyJWKClient(
     IDENTITY_BROKER_JWKS_URI,
     headers=IDENTITY_BROKER_JWKS_HEADERS,
+    ssl_context=UNVERIFIED_SSL_CONTEXT
 )
 
 
@@ -68,5 +73,5 @@ def decode_jwt(token: str) -> dict:
         logger.info("JWT rejected: token expired")
         raise _invalid_token_exception("Token has expired") from exc
     except (InvalidTokenError, PyJWKClientError) as exc:
-        logger.warning("JWT rejected: invalid token")
+        logger.warning("JWT rejected: invalid token: %s", str(exc))
         raise _invalid_token_exception() from exc

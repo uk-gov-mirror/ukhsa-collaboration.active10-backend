@@ -1,23 +1,26 @@
 import time
 from contextlib import contextmanager
-from uuid import uuid4
+from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from alembic import command
 from alembic.config import Config
 from docker.errors import DockerException
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy import NullPool, create_engine
 from sqlalchemy.orm import sessionmaker
 from testcontainers.postgres import PostgresContainer
 
 from auth import auth_bearer
-from crud.user_crud import UserCRUD
 from db.session import Base, get_db_session
 from main import app
-from models import User, UserToken
+from service.keycloak_userinfo_service import KeycloakUserInfoService
 
-user_uuid_pk = uuid4()
+user_sub = "3a8d2869-0b2e-485a-9e67-8a906e6194ce"
+invalid_token = "invalid-test-token"
+authenticated_token = f"test-token-{user_sub}"
 
 try:
     postgres = PostgresContainer("postgres:16")
@@ -56,21 +59,6 @@ def db_session(db_engine):
     transaction = connection.begin()
     session = TestSessionLocal(bind=connection)
 
-    user_crud = UserCRUD(session)
-    default_user = User(
-        id=user_uuid_pk,
-        unique_id="3a8d2869-0b2e-485a-9e67-8a906e6194ce",
-        nhs_number="1234567890",
-        first_name="Default",
-        email="default@example.com",
-        gender="male",
-        postcode="12345",
-        identity_level="1",
-        date_of_birth="1990-01-01",
-    )
-    if not session.query(User).filter_by(id=user_uuid_pk).first():
-        _ = user_crud.create_user(default_user)
-
     yield session
     transaction.rollback()
     session.close()
@@ -82,7 +70,21 @@ def client(db_session):
     def override_get_db():
         yield db_session
 
+    def override_keycloak_userinfo_service():
+        class FakeKeycloakUserInfoService:
+            def get_userinfo(self, access_token: str) -> dict[str, Any]:
+                return {
+                    "sub": user_sub,
+                    "given_name": "Default",
+                    "email": "default@example.com",
+                    "identity_proofing_level": "P5",
+                    "birthdate": "1990-01-01",
+                }
+
+        return FakeKeycloakUserInfoService()
+
     app.dependency_overrides[get_db_session] = override_get_db
+    app.dependency_overrides[KeycloakUserInfoService] = override_keycloak_userinfo_service
 
     with TestClient(app) as client:
         yield client
@@ -91,41 +93,25 @@ def client(db_session):
 TOKEN_EXPIRY_5_MINUTES_AS_SEC = 300
 
 
-def create_user_token(user, db_session, is_authenticated=True) -> None:
-    if user.token:
-        db_session.delete(user.token)
-        db_session.commit()
-
-    subject = user.unique_id if is_authenticated else str(uuid4())
-    token = f"test-token-{subject}"
-
-    user_token = UserToken(user_id=user.id, token=token)
-    db_session.add(user_token)
-    db_session.commit()
-    db_session.refresh(user)
+def decode_test_jwt(token: str) -> dict:
+    if token == authenticated_token:
+        return {
+            "sub": user_sub,
+            "exp": time.time() + TOKEN_EXPIRY_5_MINUTES_AS_SEC,
+        }
+    raise HTTPException(status_code=403, detail="Token is not valid")
 
 
 @pytest.fixture(scope="function")
-def authenticated_user(db_session):
-    user = db_session.query(User).filter(User.id == user_uuid_pk).first()
-    create_user_token(user, db_session, is_authenticated=True)
-    auth_bearer.decode_jwt = lambda _: {
-        "sub": str(user.id),
-        "exp": time.time() + TOKEN_EXPIRY_5_MINUTES_AS_SEC,
-    }
-    return user
+def authenticated_user():
+    auth_bearer.decode_jwt = decode_test_jwt
+    return SimpleNamespace(id=user_sub, token=SimpleNamespace(token=authenticated_token))
 
 
 @pytest.fixture(scope="function")
-def unauthenticated_user(db_session):
-    user = db_session.query(User).filter(User.id == user_uuid_pk).first()
-    missing_subject = str(uuid4())
-    create_user_token(user, db_session, is_authenticated=False)
-    auth_bearer.decode_jwt = lambda _: {
-        "sub": missing_subject,
-        "exp": time.time() + TOKEN_EXPIRY_5_MINUTES_AS_SEC,
-    }
-    return user
+def unauthenticated_user():
+    auth_bearer.decode_jwt = decode_test_jwt
+    return SimpleNamespace(id="invalid-user", token=SimpleNamespace(token=invalid_token))
 
 
 @contextmanager
