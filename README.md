@@ -1,6 +1,6 @@
-# Active10 Backend Service
+# Active 10 Backend Service
 
-A FastAPI-based backend service for the Active10 mobile app, providing activity tracking APIs.
+A FastAPI-based backend service for the Active 10 mobile app, providing activity tracking APIs.
 
 ### Project Structure
 ```
@@ -22,8 +22,8 @@ A FastAPI-based backend service for the Active10 mobile app, providing activity 
 ## Getting Started
 
 ### Prerequisites
-- Python 3.11+
-- PostgreSQL 16+
+- Python 3.10+
+- PostgreSQL 18+
 - Docker
 
 ### Quick Start with Docker
