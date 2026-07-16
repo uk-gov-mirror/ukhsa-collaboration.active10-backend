@@ -63,13 +63,11 @@ def get_tracer():
 @contextmanager
 def auth_step_span(step: str, flow: str = NHS_LOGIN_FLOW):
     """
-    Open a subsegment for one step of the authentication journey, annotated
-    with auth.step/auth.flow so traces are filterable per step in X-Ray.
+    Times one step of NHS Login (e.g. token exchange) so we can find it in X-Ray.
 
-    Only the step name, flow name and the exception class name may be
-    attached here — never tokens, authorization codes, or user data.
+    Tags the span with auth.step and auth.flow for filtering. On failure, records
+    only the exception type — never tokens, codes, or user details.
     """
-
     with get_tracer().start_as_current_span(
         step,
         record_exception=False,

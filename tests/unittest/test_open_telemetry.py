@@ -30,13 +30,13 @@ def span_exporter():
 
 
 def test_auth_step_span_sets_filterable_annotations(span_exporter) -> None:
-    with auth_step_span(AUTH_STEPS["token_exchange"]):
-        pass
+    with auth_step_span(AUTH_STEPS["token_exchange"]) as span:
+        assert span.is_recording()
 
-    span = span_exporter.get_finished_spans()[-1]
-    assert span.name == AUTH_STEPS["token_exchange"]
-    assert span.attributes[AUTH_STEP_KEY] == AUTH_STEPS["token_exchange"]
-    assert span.attributes[AUTH_FLOW_KEY] == NHS_LOGIN_FLOW
+    finished = span_exporter.get_finished_spans()[-1]
+    assert finished.name == AUTH_STEPS["token_exchange"]
+    assert finished.attributes[AUTH_STEP_KEY] == AUTH_STEPS["token_exchange"]
+    assert finished.attributes[AUTH_FLOW_KEY] == NHS_LOGIN_FLOW
 
 
 def test_auth_step_span_records_only_exception_type_on_error(span_exporter) -> None:
@@ -55,6 +55,7 @@ def test_redact_query_string_removes_callback_query(span_exporter) -> None:
     scope = {"path": "/nhs_login/callback"}
     with get_tracer().start_as_current_span("server-span") as span:
         _redact_query_string(span, scope)
+        assert span.is_recording()
 
     recorded = span_exporter.get_finished_spans()[-1]
     assert recorded.attributes["http.target"] == "/nhs_login/callback"
@@ -64,6 +65,7 @@ def test_redact_query_string_removes_callback_query(span_exporter) -> None:
 
 
 def test_redact_query_string_handles_missing_span() -> None:
+    # FastAPI instrumentation may pass a dead span; redaction must be a no-op.
     _redact_query_string(None, {"path": "/nhs_login/callback"})
 
 
@@ -73,6 +75,7 @@ def test_redact_outbound_url_strips_query(span_exporter) -> None:
 
     with get_tracer().start_as_current_span("client-span") as span:
         _redact_outbound_url(span, OutboundRequest())
+        assert span.is_recording()
 
     recorded = span_exporter.get_finished_spans()[-1]
     assert recorded.attributes["http.url"] == "https://auth.example.nhs.uk/token"
