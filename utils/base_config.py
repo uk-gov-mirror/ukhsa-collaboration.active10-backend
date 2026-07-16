@@ -36,6 +36,10 @@ class Config(BaseSettings):
     redis_password: str = ""
     redis_use_ssl: bool = False
 
+    otel_service_name: str = "active10-auth"
+    otel_exporter_otlp_endpoint: str
+    otel_exporter_otlp_insecure: bool = False
+
     test_nhs_login_api: str | None = None
     test_nhs_email: str | None = None
     test_nhs_password: str | None = None

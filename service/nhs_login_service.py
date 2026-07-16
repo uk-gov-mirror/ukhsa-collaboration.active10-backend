@@ -11,6 +11,7 @@ from models.user import User
 from nhs.authenticator import Authenticator
 from nhs.pds import PDSClient
 from schemas.user import NHSUser
+from service.open_telemetry_service import AUTH_STEPS, auth_step_span
 from utils.base_config import config
 
 auth_nhs = Authenticator(
@@ -38,8 +39,9 @@ class NHSLoginService:
         :param app_internal_id: App internal ID.
         :return: A URL to redirect to NHS Login auth flow.
         """
-        state = self.__create_state(app_name, app_internal_id)
-        url = auth_nhs.get_authorization_url(state=state, vtr=config.nhs_vectors)
+        with auth_step_span(AUTH_STEPS["authorize_redirect"]):
+            state = self.__create_state(app_name, app_internal_id)
+            url = auth_nhs.get_authorization_url(state=state, vtr=config.nhs_vectors)
         return url
 
     @staticmethod
@@ -86,29 +88,31 @@ class NHSLoginService:
             identity_level=user_info["identity_proofing_level"],
         )
 
-        # Check if the user already exists
-        existing_user = self.userCRUD.get_user_by_sub(user.unique_id)
+        with auth_step_span(AUTH_STEPS["session_write"]) as span:
+            # Check if the user already exists
+            existing_user = self.userCRUD.get_user_by_sub(user.unique_id)
+            span.set_attribute("auth.user_exists", existing_user is not None)
 
-        if existing_user:
-            # Update the existing user's information
-            existing_user.first_name = user.first_name
-            existing_user.email = user.email
-            existing_user.date_of_birth = user.date_of_birth
-            existing_user.gender = user.gender
-            existing_user.postcode = user.postcode
-            existing_user.identity_level = user.identity_level
-            existing_user.status = UserStatus.LOGIN.value
-            existing_user.status_updated_at = datetime.utcnow()
-            result = self.userCRUD.update_user(existing_user)
-        else:
-            # Insert the new user
-            result = self.userCRUD.create_user(user)
+            if existing_user:
+                # Update the existing user's information
+                existing_user.first_name = user.first_name
+                existing_user.email = user.email
+                existing_user.date_of_birth = user.date_of_birth
+                existing_user.gender = user.gender
+                existing_user.postcode = user.postcode
+                existing_user.identity_level = user.identity_level
+                existing_user.status = UserStatus.LOGIN.value
+                existing_user.status_updated_at = datetime.utcnow()
+                result = self.userCRUD.update_user(existing_user)
+            else:
+                # Insert the new user
+                result = self.userCRUD.create_user(user)
 
-        # Generate and return new redirect URL for mobile app
-        generated_data = self.generate_redirect_url(result)
-        _ = self.token_crud.create_or_update_user_token(
-            user_id=result.id, token=generated_data.get("token")
-        )
+            # Generate and return new redirect URL for mobile app
+            generated_data = self.generate_redirect_url(result)
+            _ = self.token_crud.create_or_update_user_token(
+                user_id=result.id, token=generated_data.get("token")
+            )
 
         return generated_data.get("redirect_url")
 
@@ -120,9 +124,12 @@ class NHSLoginService:
         :param req_args: The request arguments from the NHS login callback.
         :return: A NHSUser instance with user information.
         """
-        auth_resp = auth_nhs.get_authorization_response(req_args)
-        data = auth_nhs.get_access_token(auth_resp)
-        user_info = auth_nhs.get_userinfo(data["access_token"])
+        with auth_step_span(AUTH_STEPS["authorization_response"]):
+            auth_resp = auth_nhs.get_authorization_response(req_args)
+        with auth_step_span(AUTH_STEPS["token_exchange"]):
+            data = auth_nhs.get_access_token(auth_resp)
+        with auth_step_span(AUTH_STEPS["userinfo"]):
+            user_info = auth_nhs.get_userinfo(data["access_token"])
         # TODO: gender and postcode needs to come from Mobile App now.
         user_info["gender"] = "na"
         user_info["postcode"] = "na"

@@ -2,16 +2,21 @@ from functools import lru_cache
 
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from api.healthcheck import router as healthcheck
 from api.nhs_login import router as nhs_login
 from api.unsubscribe import router as unsubscribe
 from api.v1 import router as api_v1
 from api.v2 import router as api_v2
+from service.open_telemetry_service import setup_telemetry
 from utils.base_config import config
+
+setup_telemetry()
 
 APP_VERSION = config.app_version
 APP_CODE_COMMIT_HASH = config.app_code_commit_hash
+
 
 app = FastAPI(
     title="Active 10 NHS Login Backend Service",
@@ -19,6 +24,21 @@ app = FastAPI(
     version=APP_VERSION,
 )
 
+
+def _redact_query_string(span, scope) -> None:
+    if span is None or not span.is_recording():
+        return
+    path = scope.get("path", "")
+    for attribute in ("http.target", "http.url", "url.full"):
+        span.set_attribute(attribute, path)
+    span.set_attribute("url.query", "REDACTED")
+
+
+FastAPIInstrumentor.instrument_app(
+    app,
+    excluded_urls="healthcheck",
+    server_request_hook=_redact_query_string,
+)
 CSP_POLICY = "; ".join(
     [
         "default-src 'self'",
