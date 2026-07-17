@@ -6,8 +6,8 @@ from fastapi.responses import JSONResponse
 from auth.auth_bearer import get_authenticated_user_data
 from schemas.activity import UserActivityRequestSchema
 from schemas.job import JobStatus, JobStatusResponseSchema
+from service import background_job_service
 from service.activity_service import load_activities_data_in_sns
-from service.background_job_service import create_job
 from utils.background_jobs import get_job_status_for_user, run_tracked_job
 
 router = APIRouter(prefix="/activities", tags=["activities"])
@@ -20,7 +20,7 @@ async def save_activity(
     activity_payload: UserActivityRequestSchema,
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
 ):
-    job_id = create_job(user_data["user_id"])
+    job_id = background_job_service.create_job(user_data["user_id"])
     background_task.add_task(
         run_tracked_job,
         job_id,
