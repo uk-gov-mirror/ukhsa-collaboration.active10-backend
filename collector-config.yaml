@@ -1,0 +1,28 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+
+exporters:
+  awsxray:
+
+    region: ${env:AWS_REGION:-eu-west-2}
+
+    indexed_attributes:
+      - auth.step
+      - auth.flow
+      - auth.cache_hit
+      - auth.user_exists
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [awsxray]

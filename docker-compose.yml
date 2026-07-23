@@ -88,6 +88,23 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
+  adot-collector:
+    image: public.ecr.aws/aws-observability/aws-otel-collector:latest
+    container_name: adot-collector
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./collector-config.yaml:/etc/otelcol/config.yaml:ro
+      - ~/.aws:/root/.aws:ro
+    environment:
+      AWS_REGION: ${AWS_REGION:-eu-west-2}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    networks:
+      - proxy
+
 volumes:
   postgres_data:
 
