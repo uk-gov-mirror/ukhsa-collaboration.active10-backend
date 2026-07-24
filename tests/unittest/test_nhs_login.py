@@ -1,4 +1,5 @@
-from tests.unittest.conftest import unauthenticated_user, authenticated_user  # noqa
+from models import DeleteAudit, UserDeleteReason
+from tests.unittest.conftest import authenticated_user, unauthenticated_user  # noqa
 
 
 def test_nhs_login_redirect(client):
@@ -100,7 +101,10 @@ def test_disconnect_user_without_token(client):
     assert response.json() == {"detail": "Not authenticated"}
 
 
-def test_disconnect_user_with_authenticated_user(client, authenticated_user):  # noqa
+def test_disconnect_user_with_authenticated_user(client, authenticated_user, db_session):  # noqa
+    user_id = authenticated_user.id
+    initial_audit_count = db_session.query(DeleteAudit).count()
+
     response = client.post(
         "/nhs_login/disconnect",
         headers={"Authorization": f"Bearer {authenticated_user.token.token}"},
@@ -108,3 +112,8 @@ def test_disconnect_user_with_authenticated_user(client, authenticated_user):  #
 
     assert response.status_code == 200  # noqa: PLR2004
     assert response.json() == {"message": "User disconnected successfully"}
+
+    delete_audit = db_session.query(DeleteAudit).filter(DeleteAudit.user_id == user_id).first()
+    assert db_session.query(DeleteAudit).count() == initial_audit_count + 1
+    assert delete_audit is not None
+    assert delete_audit.delete_reason == UserDeleteReason.DISCONNECTED.value
