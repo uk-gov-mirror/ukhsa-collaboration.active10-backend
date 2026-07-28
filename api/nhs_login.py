@@ -17,7 +17,7 @@ router = APIRouter(prefix="/nhs_login", tags=["NHS Login"])
 
 
 @router.get("/{app_name}/{app_internal_id}")
-def nhs_login(app_name: str, app_internal_id: str, service: NHSLoginService = Depends()):  # noqa: B008
+async def nhs_login(app_name: str, app_internal_id: str, service: NHSLoginService = Depends()):  # noqa: B008
     url = service.get_nhs_login_url(app_name, app_internal_id)
     return RedirectResponse(url)
 

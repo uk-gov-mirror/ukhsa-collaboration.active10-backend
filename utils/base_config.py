@@ -44,6 +44,8 @@ class Config(BaseSettings):
     test_nhs_email: str | None = None
     test_nhs_password: str | None = None
     test_nhs_otp: str | None = None
+    
+    cprofile_enable : bool = False
 
     # Extra allowed for adding AWS_ local dummy secrets in the .env file
     model_config = SettingsConfigDict(

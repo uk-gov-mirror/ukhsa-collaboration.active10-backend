@@ -4,5 +4,5 @@ router = APIRouter(prefix="/healthcheck", tags=["Healthcheck"])
 
 
 @router.get("")
-def healthcheck():
+async def healthcheck():
     pass

@@ -8,5 +8,5 @@ router = APIRouter(prefix="/unsubscribe", tags=["Unsubscribe"])
 
 
 @router.get("/", response_class=HTMLResponse)
-def unsubscribe_page(request: Request):
+async def unsubscribe_page(request: Request):
     return templates.TemplateResponse("unsubscribe.html", {"request": request})

@@ -11,7 +11,7 @@ router = APIRouter(prefix="/activities", tags=["activities"])
 
 
 @router.post("", status_code=201, response_class=JSONResponse)
-def save_activity(
+async def save_activity(
     background_task: BackgroundTasks,
     activity_payload: UserActivityRequestSchema,
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
