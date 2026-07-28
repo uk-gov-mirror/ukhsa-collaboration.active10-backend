@@ -15,7 +15,7 @@ router = APIRouter(prefix="/motivations", tags=["Motivations"])
 
 
 @router.post("/", response_model=UserMotivationResponse, status_code=201)
-async def create_user_motivation(
+def create_user_motivation(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     payload: CreateUpdateUserMotivationRequest,
     crud: Annotated[UserMotivationCRUD, Depends()],
@@ -25,7 +25,7 @@ async def create_user_motivation(
 
 
 @router.get("/", response_model=list[UserMotivationResponse])
-async def get_all_motivations(
+def get_all_motivations(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     crud: Annotated[UserMotivationCRUD, Depends()],
 ):
@@ -33,7 +33,7 @@ async def get_all_motivations(
 
 
 @router.get("/{motivation_id}", response_model=UserMotivationResponse)
-async def get_motivation_by_id(
+def get_motivation_by_id(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     motivation_id: UUID,
     crud: Annotated[UserMotivationCRUD, Depends()],
@@ -50,7 +50,7 @@ async def get_motivation_by_id(
 
 
 @router.put("/{motivation_id}", response_model=UserMotivationResponse)
-async def update_user_motivation(
+def update_user_motivation(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     motivation_id: UUID,
     payload: CreateUpdateUserMotivationRequest,
@@ -65,7 +65,7 @@ async def update_user_motivation(
 
 
 @router.delete("/{motivation_id}", status_code=204)
-async def delete_user_motivation(
+def delete_user_motivation(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     motivation_id: UUID,
     crud: Annotated[UserMotivationCRUD, Depends()],

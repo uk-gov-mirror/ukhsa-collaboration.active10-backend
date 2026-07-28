@@ -12,7 +12,7 @@ router = APIRouter(prefix="/daily_targets", tags=["daily target"])
 
 
 @router.post("", response_model=DailyTargetResponseSchema, status_code=201)
-async def create_daily_target(
+def create_daily_target(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     payload: DailyTargetRequestSchema,
     daily_target_crud: Annotated[UserDailyTargetCRUD, Depends()],
@@ -36,7 +36,7 @@ async def create_daily_target(
 
 
 @router.get("", response_model=list[DailyTargetResponseSchema], status_code=200)
-async def get_user_daily_targets_list(  # noqa: PLR0913
+def get_user_daily_targets_list(  # noqa: PLR0913
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     daily_target_crud: Annotated[UserDailyTargetCRUD, Depends()],
     date: int | None = Query(None, description="Filter by exact date (UNIX timestamp)"),
@@ -64,7 +64,7 @@ async def get_user_daily_targets_list(  # noqa: PLR0913
 
 
 @router.get("/{target_id}", response_model=DailyTargetResponseSchema, status_code=200)
-async def get_user_daily_target(
+def get_user_daily_target(
     target_id: UUID,
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     daily_target_crud: Annotated[UserDailyTargetCRUD, Depends()],
@@ -80,7 +80,7 @@ async def get_user_daily_target(
 
 
 @router.put("/{target_id}", response_model=DailyTargetResponseSchema, status_code=200)
-async def update_daily_target(
+def update_daily_target(
     target_id: UUID,
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     payload: DailyTargetRequestSchema,
@@ -98,7 +98,7 @@ async def update_daily_target(
 
 
 @router.delete("/{target_id}", status_code=204)
-async def delete_daily_target(
+def delete_daily_target(
     target_id: UUID,
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     daily_target_crud: Annotated[UserDailyTargetCRUD, Depends()],

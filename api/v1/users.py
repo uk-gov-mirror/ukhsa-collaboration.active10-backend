@@ -14,7 +14,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get("/", response_class=JSONResponse)
-async def get_user(
+def get_user(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     user_service: Annotated[UserService, Depends()],
     user_crud: Annotated[UserCRUD, Depends()],
@@ -25,7 +25,7 @@ async def get_user(
 
 
 @router.post("/email_preferences/subscribe", response_class=JSONResponse)
-async def subscribe_email_preference(
+def subscribe_email_preference(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     subscription_crud: Annotated[SubscriptionCRUD, Depends()],
     payload: EmailPreferenceRequest,
@@ -37,7 +37,7 @@ async def subscribe_email_preference(
 
 
 @router.post("/email_preferences/unsubscribe", response_class=JSONResponse)
-async def unsubscribe_email_preference(
+def unsubscribe_email_preference(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     subscription_crud: Annotated[SubscriptionCRUD, Depends()],
     payload: EmailPreferenceRequest,
@@ -49,7 +49,7 @@ async def unsubscribe_email_preference(
 
 
 @router.post("/public/email_preferences/unsubscribe/", response_class=JSONResponse)
-async def public_unsubscribe_email_preference(
+def public_unsubscribe_email_preference(
     subscription_crud: Annotated[SubscriptionCRUD, Depends()],
     payload: EmailPreferenceRequestPublic,
 ):

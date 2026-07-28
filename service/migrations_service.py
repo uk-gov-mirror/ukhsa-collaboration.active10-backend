@@ -4,7 +4,7 @@ from service.aws_sqs_service import send_message_to_sqs_queue
 from utils.base_config import config as settings
 
 
-async def load_bulk_activities_data(data: ActivitiesMigrationsRequestSchema, user_id: str) -> None:
+def load_bulk_activities_data(data: ActivitiesMigrationsRequestSchema, user_id: str) -> None:
     """
     Load bulk activities data to SQS queue.
 
@@ -20,7 +20,7 @@ async def load_bulk_activities_data(data: ActivitiesMigrationsRequestSchema, use
     send_message_to_sqs_queue(sqs_target_url=target_sqs_url, record=activities_migration_payload)
 
 
-async def publish_bulk_activities_data_to_sns(
+def publish_bulk_activities_data_to_sns(
     data: ActivitiesMigrationsRequestSchema, user_id: str
 ) -> None:
     """

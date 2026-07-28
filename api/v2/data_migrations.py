@@ -13,7 +13,7 @@ router = APIRouter(prefix="/migrations", tags=["migrations"])
 
 
 @router.post("/activities", status_code=201, response_class=JSONResponse)
-async def save_bulk_activities(
+def save_bulk_activities(
     background_task: BackgroundTasks,
     data: ActivitiesMigrationsRequestSchema,
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
