@@ -21,6 +21,9 @@ class Config(BaseSettings):
     db_user: str
     db_pass: str
     db_name: str
+    db_pool_size: int = 35
+    db_max_overflow: int = 10
+    db_pool_recycle: int = 1800
     app_uri: str
     gojauntly_key_id: str
     gojauntly_private_key: str
