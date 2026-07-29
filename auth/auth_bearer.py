@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from crud.user_crud import UserCRUD
-from service.open_telemetry_service import AUTH_STEPS, auth_step_span
+from service.open_telemetry_service import STEP_JWT_VALIDATION, auth_step_span
 from service.redis_service import RedisService, get_redis_service
 from utils.base_config import logger
 
@@ -33,7 +33,7 @@ def get_authenticated_user_data(
     Raises:
         HTTPException: If the token is invalid, expired, or the user is not found.
     """
-    with auth_step_span(AUTH_STEPS["jwt_validation"]) as span:
+    with auth_step_span(STEP_JWT_VALIDATION) as span:
         token_hash = redis_service.hash_token(token.credentials)
         cached_auth_data = redis_service.get_auth_cache(token_hash)
         span.set_attribute("auth.cache_hit", cached_auth_data is not None)

@@ -19,24 +19,25 @@ AUTH_STEP_KEY = "auth.step"
 
 NHS_LOGIN_FLOW = "nhs-login"
 
-# Auth journey step names recorded in the auth.step annotation.
-AUTH_STEPS = {
-    "authorize_redirect": "nhs-login-authorize-redirect",
-    "authorization_response": "nhs-login-authorization-response",
-    "token_exchange": "nhs-login-token-exchange",
-    "userinfo": "nhs-login-userinfo",
-    "session_write": "session-write",
-    "jwt_validation": "jwt-validation",
-}
+STEP_AUTHORIZE_REDIRECT = "nhs-login-authorize-redirect"
+STEP_AUTHORIZATION_RESPONSE = "nhs-login-authorization-response"
+STEP_TOKEN_EXCHANGE = "nhs-login-token-exchange"
+STEP_USERINFO = "nhs-login-userinfo"
+STEP_SESSION_WRITE = "session-write"
+STEP_JWT_VALIDATION = "jwt-validation"
+
+tracer = trace.get_tracer("active10.nhs-login-auth")
 
 
-def _redact_outbound_url(span, request):
-    if span is None or not span.is_recording():
+def _strip_query(span, request):
+    if not span.is_recording():
         return
-    parts = urlsplit(request.url)
-    redacted = urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
-    for attribute in ("http.url", "url.full"):
-        span.set_attribute(attribute, redacted)
+
+    scheme, netloc, path, _, _ = urlsplit(request.url)
+    clean = urlunsplit((scheme, netloc, path, "", ""))
+
+    span.set_attribute("http.url", clean)
+    span.set_attribute("url.full", clean)  # newer semconv name
 
 
 def setup_telemetry():
@@ -52,25 +53,21 @@ def setup_telemetry():
     provider.add_span_processor(processor)
     trace.set_tracer_provider(provider)
     propagate.set_global_textmap(AwsXRayPropagator())
-    RequestsInstrumentor().instrument(request_hook=_redact_outbound_url)
+    RequestsInstrumentor().instrument(request_hook=_strip_query)
     RedisInstrumentor().instrument()
-
-
-def get_tracer():
-    return trace.get_tracer("active10.nhs-login-auth")
 
 
 @contextmanager
 def auth_step_span(step: str, flow: str = NHS_LOGIN_FLOW):
     """
-    Times one step of NHS Login (e.g. token exchange) so we can find it in X-Ray.
+    Open a span around one step of the auth flow.
 
-    Tags the span with auth.step and auth.flow for filtering. On failure, records
-    only the exception type — never tokens, codes, or user details.
+    :param step: Step name, one of the STEP_* constants above.
+    :param flow: Flow name recorded in the auth.flow annotation.
     """
-    with get_tracer().start_as_current_span(
+    with tracer.start_as_current_span(
         step,
-        record_exception=False,
+        record_exception=False,  # exception messages can contain tokens/codes
         set_status_on_exception=False,
     ) as span:
         span.set_attribute(AUTH_STEP_KEY, step)
