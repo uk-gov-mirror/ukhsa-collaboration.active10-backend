@@ -24,7 +24,7 @@ async def save_activity(
 
 
 @router.get("", response_model=list[ActivityResponseSchema], status_code=200)
-async def list_activities(
+def list_activities(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     date: int | None = Query(None, gt=0, description="Filter by exact date (UNIX timestamp)"),
     start_date: int | None = Query(None, gt=0, description="Filter by start date (UNIX timestamp)"),

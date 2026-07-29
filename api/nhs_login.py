@@ -23,14 +23,14 @@ async def nhs_login(app_name: str, app_internal_id: str, service: NHSLoginServic
 
 
 @router.get("/callback", response_class=RedirectResponse, status_code=301)
-async def nhs_login_callback(request: Request, service: NHSLoginService = Depends()):  # noqa: B008
+def nhs_login_callback(request: Request, service: NHSLoginService = Depends()):  # noqa: B008
     req_args = dict(request.query_params)
     deep_link = service.process_callback(req_args)
     return RedirectResponse(deep_link)
 
 
 @router.post("/logout", response_class=JSONResponse, status_code=200)
-async def logout(
+def logout(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     user_crud: Annotated[UserCRUD, Depends()],
     redis_service: RedisService = Depends(get_redis_service),  # noqa: B008
@@ -54,7 +54,7 @@ async def logout(
 
 
 @router.post("/disconnect", response_class=JSONResponse, status_code=200)
-async def disconnect(
+def disconnect(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     user_crud: Annotated[UserCRUD, Depends()],
     redis_service: RedisService = Depends(get_redis_service),  # noqa: B008

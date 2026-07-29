@@ -2,6 +2,7 @@ from functools import lru_cache
 
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
+from fastapi_cprofile.profiler import CProfileMiddleware
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from api.healthcheck import router as healthcheck
@@ -22,6 +23,14 @@ app = FastAPI(
     title="Active 10 NHS Login Backend Service",
     description=("Backend NHS Login service for Active 10 application.\n\n"),
     version=APP_VERSION,
+)
+
+app.add_middleware(
+    CProfileMiddleware,
+    enable=config.cprofile_enable,
+    print_each_request=True,
+    strip_dirs=False,
+    sort_by="cumulative",
 )
 
 

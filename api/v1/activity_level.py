@@ -11,7 +11,7 @@ router = APIRouter(prefix="/activity_level", tags=["activity level"])
 
 
 @router.get("/", response_model=list[ActivityLevelResponseSchema], status_code=200)
-async def get_user_activity_levels_list(
+def get_user_activity_levels_list(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     crud: Annotated[UserActivityLevelCRUD, Depends()],
 ):
@@ -21,7 +21,7 @@ async def get_user_activity_levels_list(
 
 
 @router.get("/{activity_level_id}", response_model=ActivityLevelResponseSchema, status_code=200)
-async def get_user_activity_level(
+def get_user_activity_level(
     activity_level_id: UUID,
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     crud: Annotated[UserActivityLevelCRUD, Depends()],
@@ -35,7 +35,7 @@ async def get_user_activity_level(
 
 
 @router.post("/", response_model=ActivityLevelResponseSchema, status_code=200)
-async def create_activity_level(
+def create_activity_level(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     payload: ActivityLevelRequestSchema,
     crud: Annotated[UserActivityLevelCRUD, Depends()],
@@ -45,7 +45,7 @@ async def create_activity_level(
 
 
 @router.put("/{activity_level_id}", response_model=ActivityLevelResponseSchema, status_code=200)
-async def update_activity_level(
+def update_activity_level(
     activity_level_id: UUID,
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     payload: ActivityLevelRequestSchema,
@@ -60,7 +60,7 @@ async def update_activity_level(
 
 
 @router.delete("/{activity_level_id}", status_code=204)
-async def delete_activity_level(
+def delete_activity_level(
     user_data: Annotated[dict, Depends(get_authenticated_user_data)],
     activity_level_id: UUID,
     crud: Annotated[UserActivityLevelCRUD, Depends()],
