@@ -62,6 +62,11 @@ CSP_POLICY = "; ".join(
     ]
 )
 HSTS_HEADER = "max-age=63072000; includeSubDomains; preload"
+NO_CACHE_PATHS = {
+    "/nhs_login/callback",
+    "/nhs_login/logout",
+    "/nhs_login/disconnect",
+}
 
 
 @app.middleware("http")
@@ -71,6 +76,8 @@ async def apply_security_headers(request: Request, call_next):
     response.headers["Content-Security-Policy"] = CSP_POLICY
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-Content-Type-Options"] = "nosniff"
+    if request.url.path in NO_CACHE_PATHS:
+        response.headers["Cache-Control"] = "no-cache"
     return response
 
 
