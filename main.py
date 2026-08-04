@@ -34,19 +34,21 @@ app.add_middleware(
 )
 
 
-def _redact_query_string(span, scope) -> None:
+def _drop_query_string(span, scope):
     if span is None or not span.is_recording():
         return
+
     path = scope.get("path", "")
-    for attribute in ("http.target", "http.url", "url.full"):
-        span.set_attribute(attribute, path)
+    span.set_attribute("http.target", path)
+    span.set_attribute("http.url", path)
+    span.set_attribute("url.full", path)
     span.set_attribute("url.query", "REDACTED")
 
 
 FastAPIInstrumentor.instrument_app(
     app,
     excluded_urls="healthcheck",
-    server_request_hook=_redact_query_string,
+    server_request_hook=_drop_query_string,
 )
 CSP_POLICY = "; ".join(
     [

@@ -89,7 +89,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
   adot-collector:
-    image: public.ecr.aws/aws-observability/aws-otel-collector:latest
+    image: public.ecr.aws/aws-observability/aws-otel-collector:v0.49.0
     container_name: adot-collector
     command: ["--config=/etc/otelcol/config.yaml"]
     volumes:
