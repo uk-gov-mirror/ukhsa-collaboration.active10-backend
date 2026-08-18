@@ -108,3 +108,34 @@ def test_disconnect_user_with_authenticated_user(client, authenticated_user):  #
 
     assert response.status_code == 200  # noqa: PLR2004
     assert response.json() == {"message": "User disconnected successfully"}
+
+
+def test_nhs_login_endpoints_have_no_cache_header(client):
+    callback = client.get(
+        "/nhs_login/callback",
+        params={"code": "123", "state": "test_app_12345"},
+        follow_redirects=False,
+    )
+    assert callback.headers["Cache-Control"] == "no-cache"
+
+
+def test_nhs_login_error_responses_have_no_cache_header(client):
+    logout = client.post("/nhs_login/logout")
+    assert logout.status_code == 403  # noqa: PLR2004
+    assert logout.headers["Cache-Control"] == "no-cache"
+
+    disconnect = client.post("/nhs_login/disconnect")
+    assert disconnect.status_code == 403  # noqa: PLR2004
+    assert disconnect.headers["Cache-Control"] == "no-cache"
+
+
+def test_no_cache_header_not_set_on_login_redirect(client):
+    response = client.get("/nhs_login/test_app/12345", follow_redirects=False)
+
+    assert "Cache-Control" not in response.headers
+
+
+def test_no_cache_header_not_set_outside_nhs_login(client):
+    response = client.get("/healthcheck")
+
+    assert "Cache-Control" not in response.headers
